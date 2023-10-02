@@ -5,12 +5,16 @@ go 1.20
 require (
 	github.com/golangci/golangci-lint v1.54.2
 	github.com/onsi/ginkgo/v2 v2.11.0
-	k8s.io/apimachinery v0.28.0
+	github.com/onsi/gomega v1.27.10
+	github.com/openshift/api v0.0.0-20230928105710-23b54c280f99
+	k8s.io/apimachinery v0.28.2
 	k8s.io/client-go v0.28.0
 	sigs.k8s.io/controller-runtime v0.16.0
 	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20230919085433-d5bc8734cacc
 	sigs.k8s.io/controller-tools v0.13.0
 )
+
+replace github.com/openshift/api => github.com/JoelSpeed/api v0.0.0-20230929110148-da79a0cb2d3e
 
 require (
 	4d63.com/gocheckcompilerdirectives v1.2.1 // indirect
@@ -213,7 +217,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	honnef.co/go/tools v0.4.5 // indirect
-	k8s.io/api v0.28.0 // indirect
+	k8s.io/api v0.28.2 // indirect
 	k8s.io/apiextensions-apiserver v0.28.0 // indirect
 	k8s.io/component-base v0.28.0 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
