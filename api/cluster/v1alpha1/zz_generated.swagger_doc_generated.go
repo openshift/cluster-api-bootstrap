@@ -122,7 +122,7 @@ var map_OpenShiftControlPlaneStatus = map[string]string{
 	"":            "OpenShiftControlPlaneStatus contains fields to describe the state of the OpenShiftControlPlane state.",
 	"conditions":  "conditions represents the observations of the OpenShiftControlPlane's current state.",
 	"initialized": "initialized denotes whether or not the control plane has been initialized. This value will be set true once the first control plane node has joined the bootstrap control plane. ",
-	"ready":       "ready denotes whether or not the control plane has has reached a ready state. This value will be set true once the bootstrap node has completed the cluster bootstrap and the bootstrap node has been shut down. ",
+	"ready":       "ready denotes whether or not the control plane has reached a ready state. This value will be set true once the bootstrap node has completed the cluster bootstrap and the bootstrap node has been shut down. ",
 }
 
 func (OpenShiftControlPlaneStatus) SwaggerDoc() map[string]string {

@@ -45,9 +45,9 @@ func (r *OpenShiftControlPlaneReconciler) SetupWithManager(mgr ctrl.Manager) err
 	return nil
 }
 
-//+kubebuilder:rbac:groups=cluster.openshift.io.cluster.openshift.io,resources=openshiftcontrolplanes,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=cluster.openshift.io.cluster.openshift.io,resources=openshiftcontrolplanes/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=cluster.openshift.io.cluster.openshift.io,resources=openshiftcontrolplanes/finalizers,verbs=update
+//+kubebuilder:rbac:groups=cluster.openshift.io,resources=openshiftcontrolplanes,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=cluster.openshift.io,resources=openshiftcontrolplanes/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=cluster.openshift.io,resources=openshiftcontrolplanes/finalizers,verbs=update
 
 // Reconcile reconciles a OpenShiftControlPlane object.
 func (r *OpenShiftControlPlaneReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {

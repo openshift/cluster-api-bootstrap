@@ -45,9 +45,9 @@ func (r *OpenShiftBootstrapConfigReconciler) SetupWithManager(mgr ctrl.Manager) 
 	return nil
 }
 
-//+kubebuilder:rbac:groups=cluster.openshift.io.cluster.openshift.io,resources=openshiftbootstrapconfigs,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=cluster.openshift.io.cluster.openshift.io,resources=openshiftbootstrapconfigs/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=cluster.openshift.io.cluster.openshift.io,resources=openshiftbootstrapconfigs/finalizers,verbs=update
+//+kubebuilder:rbac:groups=cluster.openshift.io,resources=openshiftbootstrapconfigs,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=cluster.openshift.io,resources=openshiftbootstrapconfigs/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=cluster.openshift.io,resources=openshiftbootstrapconfigs/finalizers,verbs=update
 
 // Reconcile reconciles a OpenShiftBootstrapConfig object.
 func (r *OpenShiftBootstrapConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
