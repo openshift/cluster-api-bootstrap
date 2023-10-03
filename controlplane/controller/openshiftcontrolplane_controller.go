@@ -28,16 +28,16 @@ import (
 	openshiftclusterv1 "github.com/openshift/api/cluster/v1alpha1"
 )
 
-// OpenShiftBootstrapConfigReconciler reconciles a OpenShiftBootstrapConfig object.
-type OpenShiftBootstrapConfigReconciler struct {
+// OpenShiftControlPlaneReconciler reconciles a OpenShiftControlPlane object.
+type OpenShiftControlPlaneReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *OpenShiftBootstrapConfigReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *OpenShiftControlPlaneReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := ctrl.NewControllerManagedBy(mgr).
-		For(&openshiftclusterv1.OpenShiftBootstrapConfig{}).
+		For(&openshiftclusterv1.OpenShiftControlPlane{}).
 		Complete(r); err != nil {
 		return fmt.Errorf("failed to create controller: %w", err)
 	}
@@ -45,12 +45,12 @@ func (r *OpenShiftBootstrapConfigReconciler) SetupWithManager(mgr ctrl.Manager) 
 	return nil
 }
 
-//+kubebuilder:rbac:groups=cluster.openshift.io.cluster.openshift.io,resources=openshiftbootstrapconfigs,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=cluster.openshift.io.cluster.openshift.io,resources=openshiftbootstrapconfigs/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=cluster.openshift.io.cluster.openshift.io,resources=openshiftbootstrapconfigs/finalizers,verbs=update
+//+kubebuilder:rbac:groups=cluster.openshift.io,resources=openshiftcontrolplanes,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=cluster.openshift.io,resources=openshiftcontrolplanes/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=cluster.openshift.io,resources=openshiftcontrolplanes/finalizers,verbs=update
 
-// Reconcile reconciles a OpenShiftBootstrapConfig object.
-func (r *OpenShiftBootstrapConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+// Reconcile reconciles a OpenShiftControlPlane object.
+func (r *OpenShiftControlPlaneReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
 	// TODO(user): your logic here

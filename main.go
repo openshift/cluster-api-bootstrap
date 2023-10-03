@@ -32,7 +32,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	"github.com/openshift/cluster-api-provider-openshift/bootstrap/internal/controller"
+	openshiftclusterv1 "github.com/openshift/api/cluster/v1alpha1"
+	bootstrap "github.com/openshift/cluster-api-provider-openshift/bootstrap/controller"
+	controlplane "github.com/openshift/cluster-api-provider-openshift/controlplane/controller"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -41,6 +43,7 @@ func main() {
 	setupLog := ctrl.Log.WithName("setup")
 
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	utilruntime.Must(openshiftclusterv1.Install(scheme))
 
 	metricsAddr := flag.String("metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	probeAddr := flag.String("health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
@@ -62,7 +65,7 @@ func main() {
 		Metrics:                       metricsserver.Options{BindAddress: *metricsAddr},
 		HealthProbeBindAddress:        *probeAddr,
 		LeaderElection:                *enableLeaderElection,
-		LeaderElectionID:              "bootstrap.cluster.openshift.io",
+		LeaderElectionID:              "cluster.openshift.io",
 		LeaderElectionReleaseOnCancel: true,
 	})
 	if err != nil {
@@ -70,7 +73,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controller.OpenShiftBootstrapConfigReconciler{
+	if err := (&controlplane.OpenShiftControlPlaneReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "OpenShiftControlPlane")
+		os.Exit(1)
+	}
+	if err := (&bootstrap.OpenShiftBootstrapConfigReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
