@@ -112,3 +112,10 @@ issues:
         - gosec
         - gochecknoglobals
         - goerr113
+    - path: zz_generated
+      linters:
+        - stylecheck
+        - gochecknoglobals
+        - revive
+        - godot
+        - goheader
