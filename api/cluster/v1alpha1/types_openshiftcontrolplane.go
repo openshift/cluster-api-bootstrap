@@ -174,7 +174,7 @@ type OpenShiftControlPlaneStatus struct {
 	// + This field is required as part of the Cluster API control plane API contract.
 	Initialized bool `json:"initialized"`
 
-	// ready denotes whether or not the control plane has has reached a ready state.
+	// ready denotes whether or not the control plane has reached a ready state.
 	// This value will be set true once the bootstrap node has completed the cluster bootstrap and the bootstrap node has been shut down.
 	// +optional
 	// + ---

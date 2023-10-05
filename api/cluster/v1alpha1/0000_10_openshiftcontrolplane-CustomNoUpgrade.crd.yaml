@@ -190,7 +190,7 @@ spec:
                   description: initialized denotes whether or not the control plane has been initialized. This value will be set true once the first control plane node has joined the bootstrap control plane.
                   type: boolean
                 ready:
-                  description: ready denotes whether or not the control plane has has reached a ready state. This value will be set true once the bootstrap node has completed the cluster bootstrap and the bootstrap node has been shut down.
+                  description: ready denotes whether or not the control plane has reached a ready state. This value will be set true once the bootstrap node has completed the cluster bootstrap and the bootstrap node has been shut down.
                   type: boolean
       served: true
       storage: true
