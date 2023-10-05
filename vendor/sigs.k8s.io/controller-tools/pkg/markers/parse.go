@@ -268,11 +268,7 @@ func guessType(scanner *sc.Scanner, raw string, allowSlice bool) *Argument {
 		subScanner := parserScanner(subRaw, scanner.Error)
 
 		var tok rune
-		for {
-			tok = subScanner.Scan()
-			if tok == ',' || tok == sc.EOF || tok == ';' {
-				break
-			}
+		for tok = subScanner.Scan(); tok != ',' && tok != sc.EOF && tok != ';'; tok = subScanner.Scan() {
 			// wait till we get something interesting
 		}
 
@@ -373,14 +369,6 @@ func guessType(scanner *sc.Scanner, raw string, allowSlice bool) *Argument {
 
 // parseString parses either of the two accepted string forms (quoted, or bare tokens).
 func (a *Argument) parseString(scanner *sc.Scanner, raw string, out reflect.Value) {
-	// we need to temporarily disable the scanner's int/float parsing, since we want to
-	// prevent number parsing errors.
-	oldMode := scanner.Mode
-	scanner.Mode = oldMode &^ sc.ScanInts &^ sc.ScanFloats
-	defer func() {
-		scanner.Mode = oldMode
-	}()
-
 	// strings are a bit weird -- the "easy" case is quoted strings (tokenized as strings),
 	// the "hard" case (present for backwards compat) is a bare sequence of tokens that aren't
 	// a comma.
@@ -507,12 +495,7 @@ func (a *Argument) parse(scanner *sc.Scanner, raw string, out reflect.Value, inS
 		// raw consumes everything else
 		castAndSet(out, reflect.ValueOf(raw[scanner.Pos().Offset:]))
 		// consume everything else
-		var tok rune
-		for {
-			tok = scanner.Scan()
-			if tok == sc.EOF {
-				break
-			}
+		for tok := scanner.Scan(); tok != sc.EOF; tok = scanner.Scan() {
 		}
 	case NumberType:
 		nextChar := scanner.Peek()

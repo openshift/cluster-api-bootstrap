@@ -25,7 +25,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	openshiftclusterv1 "github.com/openshift/api/cluster/v1alpha1"
+	openshiftclusterv1 "github.com/openshift/cluster-api-provider-openshift/api/cluster/v1alpha1"
 )
 
 // OpenShiftBootstrapConfigReconciler reconciles a OpenShiftBootstrapConfig object.

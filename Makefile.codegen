@@ -1,0 +1,26 @@
+# Detect go environment to build tools into env specific directories.
+# This is helpful for those running tools locally and within containers across different OS/architechture combinations.
+GOOS=$(shell go env GOOS)
+GOARCH=$(shell go env GOARCH)
+TOOLS_DIR=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+OUTPUT_DIR=$(TOOLS_DIR)/_output/bin/$(GOOS)/$(GOARCH)
+
+CODEGEN := $(OUTPUT_DIR)/codegen --base-dir api/cluster/v1alpha1
+
+.PHONY: update-codegen
+update-codegen: codegen schemapatch swaggerdocs
+
+.PHONY: schemapatch
+schemapatch:
+	$(CODEGEN) schemapatch --required-feature-sets CustomNoUpgrade
+
+.PHONY: swaggerdocs
+swaggerdocs:
+	$(CODEGEN) swaggerdocs
+
+.PHONY: codegen
+codegen: $(OUTPUT_DIR)/codegen
+
+$(OUTPUT_DIR)/codegen:
+	mkdir -p $(OUTPUT_DIR)
+	go build -o $(OUTPUT_DIR)/codegen ./vendor/github.com/openshift/api/tools/codegen/cmd
