@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 )
 
 // +genclient
@@ -165,7 +166,11 @@ type OpenShiftControlPlaneStatus struct {
 	// +listType=map
 	// +listMapKey=type
 	// +optional
-	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
+	// + ---
+	// + This field is required as part of the Cluster API control plane API contract.
+	// + The type is a clone of metav1.Condition, but the CAPI helpers expect this type.
+	// + TODO: Move this back to metav1 and create a wrapper that handles the interface and converts between the two types.
+	Conditions []clusterv1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
 
 	// initialized denotes whether or not the control plane has been initialized.
 	// This value will be set true once the first control plane node has joined the bootstrap control plane.
@@ -196,4 +201,16 @@ type OpenShiftControlPlaneList struct {
 
 	// items contains a list of OpenShiftControlPlanes.
 	Items []OpenShiftControlPlane `json:"items"`
+}
+
+// GetConditions returns the list of conditions for a cluster API object.
+// TODO: This should not be here.
+func (ocp *OpenShiftControlPlane) GetConditions() clusterv1.Conditions {
+	return ocp.Status.Conditions
+}
+
+// SetConditions sets the conditions on a cluster API object.
+// TODO: This should not be here.
+func (ocp *OpenShiftControlPlane) SetConditions(conditions clusterv1.Conditions) {
+	ocp.Status.Conditions = conditions
 }
