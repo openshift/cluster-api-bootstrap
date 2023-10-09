@@ -29,11 +29,13 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/selection"
+	"k8s.io/apimachinery/pkg/types"
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/klog/v2"
 
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/cluster-api/controllers/external"
+	"sigs.k8s.io/cluster-api/controllers/remote"
 	"sigs.k8s.io/cluster-api/util"
 	"sigs.k8s.io/cluster-api/util/annotations"
 	"sigs.k8s.io/cluster-api/util/collections"
@@ -58,6 +60,9 @@ const (
 type OpenShiftControlPlaneReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+
+	// Tracker is used to access the remote cluster and verify that the cluster bootstrap has completed.
+	Tracker *remote.ClusterCacheTracker
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -67,6 +72,18 @@ func (r *OpenShiftControlPlaneReconciler) SetupWithManager(mgr ctrl.Manager) err
 		Owns(&clusterv1.Machine{}).
 		Complete(r); err != nil {
 		return fmt.Errorf("failed to create controller: %w", err)
+	}
+
+	if r.Tracker == nil {
+		cacheLogger := log.Log.WithName("openshift-control-plane-controller").WithName("remote-cache")
+		tracker, err := remote.NewClusterCacheTracker(mgr, remote.ClusterCacheTrackerOptions{
+			Log:            &cacheLogger,
+			ControllerName: "remote-cache",
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create remote cluster cache tracker: %w", err)
+		}
+		r.Tracker = tracker
 	}
 
 	return nil
@@ -171,6 +188,36 @@ func (r *OpenShiftControlPlaneReconciler) reconcile(ctx context.Context, logger 
 
 // reconcileControlPlaneReady handles the control plane ready phase of the OpenShiftControlPlane reconciliation.
 func (r OpenShiftControlPlaneReconciler) reconcileControlPlaneReady(ctx context.Context, logger logr.Logger, cluster *clusterv1.Cluster, ocp *openshiftclusterv1.OpenShiftControlPlane, controlPlaneMachines collections.Machines) (ctrl.Result, error) {
+	remoteClient, err := r.Tracker.GetClient(ctx, types.NamespacedName{Name: cluster.Name, Namespace: cluster.Namespace})
+	if err != nil {
+		// We expect the API to be available by this point so should be able to get a client.
+		logger.Error(err, "Failed to get remote cluster client, waiting")
+		return ctrl.Result{}, fmt.Errorf("failed to get remote cluster client: %w", err)
+	}
+
+	if err := remoteClient.Get(ctx, types.NamespacedName{Name: "bootstrap", Namespace: "kube-system"}, &corev1.ConfigMap{}); err != nil && !apierrors.IsNotFound(err) {
+		logger.Error(err, "Failed to get bootstrap config map")
+		return ctrl.Result{}, fmt.Errorf("failed to get bootstrap config map: %w", err)
+	} else if apierrors.IsNotFound(err) {
+		logger.Info("Cluster bootstrap not yet complete, waiting")
+		return ctrl.Result{RequeueAfter: requeueAfter}, nil
+	}
+
+	bootstrapMachines := controlPlaneMachines.Filter(bootstrapMachinesFilter(cluster.Name))
+	if bootstrapMachines.Len() > 0 {
+		bootstrapMachine := bootstrapMachines.UnsortedList()[0]
+		if bootstrapMachine.DeletionTimestamp == nil {
+			logger.Info("Deleting bootstrap machine")
+			if err := r.Client.Delete(ctx, bootstrapMachine); err != nil {
+				logger.Error(err, "Failed to delete bootstrap machine")
+				return ctrl.Result{}, fmt.Errorf("failed to delete bootstrap machine: %w", err)
+			}
+		}
+	}
+
+	logger.Info("Control plane is ready")
+	ocp.Status.Ready = true
+
 	return ctrl.Result{}, nil
 }
 
@@ -218,6 +265,13 @@ func (r OpenShiftControlPlaneReconciler) reconcileInitBootstrapMachine(ctx conte
 func (r OpenShiftControlPlaneReconciler) reconcileInitControlPlaneMachines(ctx context.Context, logger logr.Logger, cluster *clusterv1.Cluster, ocp *openshiftclusterv1.OpenShiftControlPlane, bootstrapMachines collections.Machines) (ctrl.Result, error) {
 	if !bootstrapMachines.UnsortedList()[0].Status.InfrastructureReady {
 		logger.Info("Bootstrap machine infrastructure is not ready, waiting")
+		return ctrl.Result{}, nil
+	}
+
+	_, err := r.Tracker.GetClient(ctx, types.NamespacedName{Name: cluster.Name, Namespace: cluster.Namespace})
+	if err != nil {
+		logger.Error(nil, "Failed to get remote cluster client, bootstrap API is not ready, waiting")
+		return ctrl.Result{RequeueAfter: requeueAfter}, nil
 	}
 
 	logger.Info("Creating control plane machines")
