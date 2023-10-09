@@ -207,7 +207,7 @@ func (r OpenShiftControlPlaneReconciler) reconcileInitBootstrapMachine(ctx conte
 	}
 
 	logger.Info("Creating bootstrap machine")
-	if err := createControlPlaneMachine(ctx, r.Client, cluster, ocp, "bootstrap", bootstrapLabels); err != nil {
+	if err := createControlPlaneMachine(ctx, r.Client, cluster, ocp, "bootstrap", bootstrapLabels, ocp.Spec.BootstrapMachineTemplate.InfrastructureRef); err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to create bootstrap machine: %w", err)
 	}
 
@@ -224,7 +224,7 @@ func (r OpenShiftControlPlaneReconciler) reconcileInitControlPlaneMachines(ctx c
 	for i := 0; i < 3; i++ {
 		// OpenShift expets the machines to be called master-0, master-1 and master-2.
 		name := fmt.Sprintf("master-%d", i)
-		if err := createControlPlaneMachine(ctx, r.Client, cluster, ocp, name, nil); err != nil {
+		if err := createControlPlaneMachine(ctx, r.Client, cluster, ocp, name, nil, ocp.Spec.MachineTemplate.InfrastructureRef); err != nil {
 			return ctrl.Result{}, fmt.Errorf("failed to create control-plane machine %q: %w", name, err)
 		}
 	}
@@ -324,13 +324,13 @@ func getUnstructuredFor(ctx context.Context, c client.Client, cluster *clusterv1
 	return obj, nil
 }
 
-func createControlPlaneMachine(ctx context.Context, c client.Client, cluster *clusterv1.Cluster, ocp *openshiftclusterv1.OpenShiftControlPlane, name string, additonalLabels map[string]string) error {
+func createControlPlaneMachine(ctx context.Context, c client.Client, cluster *clusterv1.Cluster, ocp *openshiftclusterv1.OpenShiftControlPlane, name string, additonalLabels map[string]string, infrastructureRef openshiftclusterv1.InfrastructureReference) error {
 	bootstrapReference, err := getOrCreateFromTemplate(ctx, c, cluster, getBootstrapConfigReference(cluster, name), &corev1.ObjectReference{}, getUnstructuredBootstrapConfigTemplate())
 	if err != nil {
 		return fmt.Errorf("failed to get or create bootstrap config reference: %w", err)
 	}
 
-	infraStructureTemplate, err := getUnstructuredFor(ctx, c, cluster, ocp.Spec.MachineTemplate.InfrastructureRef)
+	infraStructureTemplate, err := getUnstructuredFor(ctx, c, cluster, infrastructureRef)
 	if err != nil {
 		return fmt.Errorf("failed to get infrastructure template: %w", err)
 	}

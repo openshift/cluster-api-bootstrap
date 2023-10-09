@@ -261,6 +261,7 @@ func (in *OpenShiftControlPlaneSecretRef) DeepCopy() *OpenShiftControlPlaneSecre
 func (in *OpenShiftControlPlaneSpec) DeepCopyInto(out *OpenShiftControlPlaneSpec) {
 	*out = *in
 	in.MachineTemplate.DeepCopyInto(&out.MachineTemplate)
+	in.BootstrapMachineTemplate.DeepCopyInto(&out.BootstrapMachineTemplate)
 	out.InstallStateSecretRef = in.InstallStateSecretRef
 	in.ManifestsSelector.DeepCopyInto(&out.ManifestsSelector)
 }

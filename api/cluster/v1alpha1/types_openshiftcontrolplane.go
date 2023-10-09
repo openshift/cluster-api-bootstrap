@@ -48,7 +48,7 @@ type OpenShiftControlPlane struct {
 
 // OpenShiftControlPlaneSpec is the spec of the OpenShift control plane resource.
 type OpenShiftControlPlaneSpec struct {
-	// machineTemplate defines the machine template used to create the initial bootstrap and control plane machines.
+	// machineTemplate defines the machine template used to create the initial control plane machines.
 	// Continued management of the control plane machines will be handled by the control plane machine set.
 	// The machine template is therefore immutable and only applicable during the bootstrap process.
 	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="machineTemplate is immutable"
@@ -56,6 +56,13 @@ type OpenShiftControlPlaneSpec struct {
 	// + ---
 	// + This field, and the fields within the OpenShiftControlPlaneMachineTemplate, are required as part of the Cluster API control plane API contract.
 	MachineTemplate OpenShiftControlPlaneMachineTemplate `json:"machineTemplate"`
+
+	// bootstrapMachineTemplate defines the machine template used to create the bootstrap machine.
+	// The bootstrap machine is used to bootstrap the control plane machines.
+	// The machine template is therefore immutable and only applicable during the bootstrap process.
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="bootstrapMachineTemplate is immutable"
+	// +kubeubilder:validation:Required
+	BootstrapMachineTemplate OpenShiftControlPlaneMachineTemplate `json:"bootstrapMachineTemplate"`
 
 	// installStateSecretRef is a reference to a secret containing the install state.
 	// The install state secret must contain either the install config or the install state, or both.
