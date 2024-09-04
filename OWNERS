@@ -15,4 +15,4 @@ reviewers:
 - sub-mod
 - theobarberbany
 component: Cloud Compute
-subcomponent: Other Provider
+subcomponent: Cluster API Providers
